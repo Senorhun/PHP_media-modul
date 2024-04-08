@@ -86,7 +86,7 @@ class ApiController extends Controller
     {
         try {
 
-            if (!$admin = JWTAuth::parseToken()->authenticate()) {
+            if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'Unauthenticated', 'status' => false], 401);
             }
             if (Gate::allows('admin')) {
@@ -134,18 +134,10 @@ class ApiController extends Controller
     public function listUsers()
     {
         try {
-
             if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'Unauthenticated', 'status' => false], 401);
             }
-            if (Gate::allows('admin')) {
-                $perPage = 25;
-                $users = User::where('status', 'active')->paginate($perPage);
-
-                return response()->json($users);
-            } else {
-                return response()->json(['message' => 'Access denied', 'status' => false], 403);
-            }
+            return $this->userService->listUsers();
         } catch (TokenExpiredException | TokenBlacklistedException  $e) {
             return response()->json(['message' => 'Token has expired', 'status' => false], 401);
         }
@@ -158,24 +150,7 @@ class ApiController extends Controller
                 return response()->json(['message' => 'User not found', 'status' => false], 404);
             }
 
-            if (Gate::allows('admin')) {
-
-
-                $users = $this->userService->findByName($firstName, $lastName);
-
-                if (!$users->isEmpty()) {
-                    return response()->json([
-                        'data' => $users
-                    ]);
-                } else {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'User not found'
-                    ], 404);
-                }
-            } else {
-                return response()->json(['message' => 'Access denied.'], 403);
-            }
+            return $this->userService->findByName($firstName, $lastName);
         } catch (TokenExpiredException | TokenBlacklistedException $e) {
             return response()->json(['message' => 'Token has expired', 'status' => false], 401);
         }
