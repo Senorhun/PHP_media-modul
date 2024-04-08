@@ -180,6 +180,47 @@ class ApiController extends Controller
         }
     }
 
+    public function findByApiKey($apiKey)
+    {
+        try {
+            if (!JWTAuth::parseToken()->authenticate()) {
+                return response()->json(['message' => 'User not found', 'status' => false], 404);
+            }
+
+            if (Gate::allows('admin')) {
+
+                if (!$apiKey) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'ApiKey is the required field'
+                    ], 422);
+                }
+
+
+                $foundUser = User::where('apiKey', $apiKey)->first();
+                if (!$foundUser) {
+                    return response()->json(['message' => 'User not found'], 404);
+                }
+                $perPage = 10;
+                $photos = $foundUser->photos()->paginate($perPage);
+
+                if ($foundUser) {
+                    return response()->json([
+                        'data' => $foundUser, $photos
+                    ]);
+                } else {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'User not found'
+                    ], 404);
+                }
+            } else {
+                return response()->json(['message' => 'Access denied', 'status' => false], 403);
+            }
+        } catch (TokenExpiredException | TokenBlacklistedException $e) {
+            return response()->json(['message' => 'Token has expired', 'status' => false], 401);
+        }
+    }
     public function softDeleteUser(Request $request)
     {
         try {
@@ -261,47 +302,7 @@ class ApiController extends Controller
         }
     }
 
-    public function findByApiKey(Request $request)
-    {
-        try {
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
-                return response()->json(['message' => 'User not found', 'status' => false], 404);
-            }
-            $apiKey = $request->input('apiKey');
 
-            if (Gate::allows('admin')) {
-                if (!$apiKey) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'ApiKey is the required field'
-                    ], 422);
-                }
-
-
-                $foundUser = User::where('apiKey', $apiKey)->first();
-                if (!$foundUser) {
-                    return response()->json(['message' => 'User not found'], 404);
-                }
-                $perPage = 10;
-                $photos = $user->photos()->paginate($perPage);
-
-                if ($foundUser) {
-                    return response()->json([
-                        'data' => $foundUser, $photos
-                    ]);
-                } else {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'User not found'
-                    ], 404);
-                }
-            } else {
-                return response()->json(['message' => 'Access denied', 'status' => false], 403);
-            }
-        } catch (TokenExpiredException | TokenBlacklistedException $e) {
-            return response()->json(['message' => 'Token has expired', 'status' => false], 401);
-        }
-    }
 
 
     public function profile()

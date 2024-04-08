@@ -19,7 +19,7 @@ Route::group(['prefix' => 'users'], function () {
     Route::post("create", [ApiController::class, "createUser"]);
     Route::get("list", [ApiController::class, "listUsers"]);
     Route::get("find/{firstName}/{lastName}", [ApiController::class, "findByName"]);
-    Route::get("find/byApiKey", [ApiController::class, "findByApiKey"]);
+    Route::get("find/{apiKey}", [ApiController::class, "findByApiKey"]);
     Route::get("listDeleted", [ApiController::class, "listDeletedUsers"]);
     Route::put("softDelete/byApiKey", [ApiController::class, "softDeleteUser"]);
     Route::put("softUndelete/byApiKey", [ApiController::class, "softUndeleteUser"]);
