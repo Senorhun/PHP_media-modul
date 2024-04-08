@@ -221,17 +221,18 @@ class ApiController extends Controller
             return response()->json(['message' => 'Token has expired', 'status' => false], 401);
         }
     }
-    public function softDeleteUser(Request $request)
+    public function softDeleteUser($apiKey)
     {
         try {
-            if (!$request->has('apiKey')) {
-                return response()->json(['message' => 'API key is required', 'status' => false], 400);
-            }
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
+
+            if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'Unauthenticated', 'status' => false], 401);
             }
             if (Gate::allows('admin')) {
-                $apiKey = $request->input('apiKey');
+
+                if (!$apiKey) {
+                    return response()->json(['message' => 'API key is required', 'status' => false], 400);
+                }
 
                 $userToDelete = User::where('apiKey', $apiKey)->first();
 
