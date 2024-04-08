@@ -115,7 +115,7 @@ class PhotoController extends Controller
     public function listPhotos()
     {
         try {
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
+            if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'User not found', 'status' => false], 404);
             }
             if (Gate::allows('admin') || Gate::allows('user')) {
@@ -153,7 +153,7 @@ class PhotoController extends Controller
     public function listDeletedPhotos()
     {
         try {
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
+            if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'User not found', 'status' => false], 404);
             }
             if (Gate::allows('admin')) {
@@ -187,21 +187,21 @@ class PhotoController extends Controller
             return response()->json(['message' => 'Token has expired', 'status' => false], 401);
         }
     }
-    public function findPhotoByFileName(Request $request)
+    public function findPhotoByFileName($fileName)
     {
         try {
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
+            if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'User not found', 'status' => false], 404);
             }
             if (Gate::allows('admin') || Gate::allows('user')) {
-                $imageName = $request->input('fileName');
-                if (!$imageName) {
+
+                if (!$fileName) {
                     return response()->json([
                         'status' => false,
                         'message' => 'FileName is the required field'
                     ], 422);
                 }
-                $images = Photo::where('fileName', $request->fileName)->where('status', 'active')->with('user:id,firstName,lastName')->get();
+                $images = Photo::where('fileName', $fileName)->where('status', 'active')->with('user:id,firstName,lastName')->get();
                 if ($images->isEmpty()) {
                     return response()->json(['message' => 'No photo found.', 'status' => true], 200);
                 }
