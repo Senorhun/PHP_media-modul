@@ -11,10 +11,17 @@ use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenBlacklistedException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
-use Symfony\Component\Console\Input\Input;
+use App\Services\UserService;
+
 
 class ApiController extends Controller
 {
+
+    protected $userService;
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
 
     public function register(Request $request)
     {
@@ -154,7 +161,7 @@ class ApiController extends Controller
             if (Gate::allows('admin')) {
 
 
-                $users = User::where('firstName', $firstName)->where('lastName', $lastName)->get();
+                $users = $this->userService->findByName($firstName, $lastName);
 
                 if (!$users->isEmpty()) {
                     return response()->json([
@@ -184,7 +191,8 @@ class ApiController extends Controller
             if (Gate::allows('admin')) {
 
 
-                $foundUser = User::where('apiKey', $apiKey)->first();
+                $foundUser = $this->userService->findByApiKey($apiKey);
+
                 if (!$foundUser) {
                     return response()->json(['message' => 'User not found'], 404);
                 }
@@ -218,7 +226,7 @@ class ApiController extends Controller
             }
             if (Gate::allows('admin')) {
 
-                $userToDelete = User::where('apiKey', $apiKey)->first();
+                $userToDelete = $this->userService->findByApiKey($apiKey);
 
                 if (!$userToDelete) {
                     return response()->json(['message' => 'User not found', 'status' => false], 404);
@@ -245,7 +253,7 @@ class ApiController extends Controller
             }
             if (Gate::allows('admin')) {
 
-                $userToUndelete = User::where('apiKey', $apiKey)->first();
+                $userToUndelete = $this->userService->findByApiKey($apiKey);
                 if (!$userToUndelete) {
                     return response()->json(['message' => 'User not found', 'status' => false], 404);
                 } elseif ($userToUndelete->status === 'active') {
