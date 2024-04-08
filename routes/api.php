@@ -10,9 +10,6 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 });
 
 
-
-
-
 Route::group(['prefix' => 'users'], function () {
     Route::post("register", [ApiController::class, "register"]);
     Route::post("login", [ApiController::class, "login"]);
@@ -23,6 +20,11 @@ Route::group(['prefix' => 'users'], function () {
     Route::get("refresh", [ApiController::class, "refreshToken"]);
     Route::get("logout", [ApiController::class, "logout"]);
 
+    Route::group(["middleware" => ["auth:api"]], function () {
+        Route::get("profile", [ApiController::class, "profile"]);
+        Route::get("refresh", [ApiController::class, "refreshToken"]);
+        Route::get("logout", [ApiController::class, "logout"]);
+    });
     Route::group(['prefix' => 'find'], function () {
         Route::get("{apiKey}", [ApiController::class, "findByApiKey"]);
         Route::put("{apiKey}/delete", [ApiController::class, "softDeleteUser"]);
@@ -44,13 +46,7 @@ Route::group(['prefix' => 'photos'], function () {
 });
 
 
-Route::group(['prefix' => 'users'], function () {
-    Route::group(["middleware" => ["auth:api"]], function () {
-        Route::get("profile", [ApiController::class, "profile"]);
-        Route::get("refresh", [ApiController::class, "refreshToken"]);
-        Route::get("logout", [ApiController::class, "logout"]);
-    });
-});
+
 
 
 /*
