@@ -235,23 +235,16 @@ class PhotoController extends Controller
         }
     }
 
-    public function updatePhoto(Request $request)
+    public function updatePhoto(Request $request, $photoId)
     {
         try {
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
+            if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'User not found', 'status' => false], 404);
             }
             if (Gate::allows('admin')) {
 
-                $imageId = $request->input('id');
-                if (!$imageId) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'ImageId is the required field'
-                    ], 422);
-                }
 
-                $image = Photo::find($request->id);
+                $image = Photo::find($photoId);
                 if (!$image) {
                     return response()->json(['data' => null, 'message' => 'Image not found'], 404);
                 }
@@ -262,10 +255,10 @@ class PhotoController extends Controller
                     'keyword' => 'nullable|string',
                 ]);
 
-                // Fill only the validated fields
+
                 $image->fill($validatedData);
 
-                // Save the updated record
+
                 $image->save();
 
                 return response()->json(['message' => 'Photo updated successfully.', 'status' => true], 200);
