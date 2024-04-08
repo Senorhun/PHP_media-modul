@@ -39,44 +39,7 @@ class PhotoController extends Controller
             if (!$user = JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'User not found', 'status' => false], 404);
             }
-            if (Gate::allows('admin')) {
-
-                $request->validate([
-                    'image.*' => 'required|image|max:2048',
-                ]);
-                if ($request->hasFile('image')) {
-                    $image = $request->file('image');
-                    foreach ($image as $key => $value) {
-
-                        $fileName = $value->getClientOriginalName();
-                        $fileSize = $value->getSize();
-                        $extension = $value->getClientOriginalExtension();
-                        $mimeType = $value->getMimeType();
-
-                        $fileNameWithoutExtension = pathinfo($fileName, PATHINFO_FILENAME);
-                        $fileExtension = pathinfo($fileName, PATHINFO_EXTENSION);
-                        $slug = Str::slug($fileNameWithoutExtension) . '-' . uniqid() . '.' . $fileExtension;
-
-                        $photo = new Photo();
-                        $photo->fileName = $fileName;
-                        $photo->fileSize = $fileSize;
-                        $photo->extension = $extension;
-                        $photo->mimeType = $mimeType;
-                        $photo->slug = $slug;
-                        $photo->user_id = $user->id;
-
-                        $photo->save();
-
-
-                        $name = time() . $key . '.' . $value->getClientOriginalExtension();
-                        $path = public_path('upload');
-                        $value->move($path, $name);
-                    }
-                    return response()->json(['message' => 'Image upload succesfull.', 'status' => true], 200);
-                }
-            } else {
-                return response()->json(['message' => 'Access denied.'], 403);
-            }
+            return $this->photoService->multiUpload($request, $user);
         } catch (TokenExpiredException | TokenBlacklistedException  $e) {
             return response()->json(['message' => 'Token has expired', 'status' => false], 401);
         }
