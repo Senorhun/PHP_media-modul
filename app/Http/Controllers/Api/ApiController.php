@@ -153,12 +153,6 @@ class ApiController extends Controller
 
             if (Gate::allows('admin')) {
 
-                if (!$firstName || !$lastName) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'Both firstName and lastName are required fields'
-                    ], 422);
-                }
 
                 $users = User::where('firstName', $firstName)->where('lastName', $lastName)->get();
 
@@ -245,9 +239,7 @@ class ApiController extends Controller
     public function softUndeleteUser($apiKey)
     {
         try {
-            if (!$apiKey) {
-                return response()->json(['message' => 'API key is required', 'status' => false], 400);
-            }
+
             if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'Unauthenticated', 'status' => false], 401);
             }
@@ -270,11 +262,10 @@ class ApiController extends Controller
         }
     }
 
-
     public function listDeletedUsers()
     {
         try {
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
+            if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'User not found', 'status' => false], 404);
             }
             if (Gate::allows('admin')) {
@@ -289,10 +280,6 @@ class ApiController extends Controller
             return response()->json(['message' => 'Token has expired', 'status' => false], 401);
         }
     }
-
-
-
-
     public function profile()
     {
 

@@ -38,8 +38,11 @@ Route::group(['prefix' => 'users'], function () {
 Route::group(['prefix' => 'photos'], function () {
     Route::post("upload", [PhotoController::class, "upload"]);
     Route::post("multiUpload", [PhotoController::class, "multiUpload"]);
-    Route::get("list", [PhotoController::class, "listPhotos"]);
-    Route::get("listDeleted", [PhotoController::class, "listDeletedPhotos"]);
+
+    Route::group(['prefix' => 'list'], function () {
+        Route::get("", [PhotoController::class, "listPhotos"]);
+        Route::get("deleted", [PhotoController::class, "listDeletedPhotos"]);
+    });
     Route::get("find/byFileName", [PhotoController::class, "findPhotoByFileName"]);
     Route::get("find/byId", [PhotoController::class, "findPhotoById"]);
     Route::put("softDelete", [PhotoController::class, "softDeletePhoto"]);
