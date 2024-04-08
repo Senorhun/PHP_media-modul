@@ -189,13 +189,6 @@ class ApiController extends Controller
 
             if (Gate::allows('admin')) {
 
-                if (!$apiKey) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'ApiKey is the required field'
-                    ], 422);
-                }
-
 
                 $foundUser = User::where('apiKey', $apiKey)->first();
                 if (!$foundUser) {
@@ -223,16 +216,13 @@ class ApiController extends Controller
     }
     public function softDeleteUser($apiKey)
     {
+
         try {
 
             if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'Unauthenticated', 'status' => false], 401);
             }
             if (Gate::allows('admin')) {
-
-                if (!$apiKey) {
-                    return response()->json(['message' => 'API key is required', 'status' => false], 400);
-                }
 
                 $userToDelete = User::where('apiKey', $apiKey)->first();
 
@@ -252,19 +242,16 @@ class ApiController extends Controller
         }
     }
 
-
-
-    public function softUndeleteUser(Request $request)
+    public function softUndeleteUser($apiKey)
     {
         try {
-            if (!$request->has('apiKey')) {
+            if (!$apiKey) {
                 return response()->json(['message' => 'API key is required', 'status' => false], 400);
             }
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
+            if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'Unauthenticated', 'status' => false], 401);
             }
             if (Gate::allows('admin')) {
-                $apiKey = $request->input('apiKey');
 
                 $userToUndelete = User::where('apiKey', $apiKey)->first();
                 if (!$userToUndelete) {

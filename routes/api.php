@@ -22,7 +22,7 @@ Route::group(['prefix' => 'users'], function () {
     Route::get("find/{apiKey}", [ApiController::class, "findByApiKey"]);
     Route::get("list/deleted", [ApiController::class, "listDeletedUsers"]);
     Route::put("find/{apiKey}/delete", [ApiController::class, "softDeleteUser"]);
-    Route::put("softUndelete/byApiKey", [ApiController::class, "softUndeleteUser"]);
+    Route::put("find/{apiKey}/undelete", [ApiController::class, "softUndeleteUser"]);
     Route::get("profile", [ApiController::class, "profile"]);
     Route::get("refresh", [ApiController::class, "refreshToken"]);
     Route::get("logout", [ApiController::class, "logout"]);
