@@ -162,31 +162,7 @@ class ApiController extends Controller
             if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'User not found', 'status' => false], 404);
             }
-
-            if (Gate::allows('admin')) {
-
-
-                $foundUser = $this->userService->findByApiKey($apiKey);
-
-                if (!$foundUser) {
-                    return response()->json(['message' => 'User not found'], 404);
-                }
-                $perPage = 10;
-                $photos = $foundUser->photos()->paginate($perPage);
-
-                if ($foundUser) {
-                    return response()->json([
-                        'data' => $foundUser, $photos
-                    ]);
-                } else {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'User not found'
-                    ], 404);
-                }
-            } else {
-                return response()->json(['message' => 'Access denied', 'status' => false], 403);
-            }
+            return $this->userService->findByApiKey($apiKey);
         } catch (TokenExpiredException | TokenBlacklistedException $e) {
             return response()->json(['message' => 'Token has expired', 'status' => false], 401);
         }
@@ -199,21 +175,8 @@ class ApiController extends Controller
             if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'Unauthenticated', 'status' => false], 401);
             }
-            if (Gate::allows('admin')) {
 
-                $userToDelete = $this->userService->findByApiKey($apiKey);
-
-                if (!$userToDelete) {
-                    return response()->json(['message' => 'User not found', 'status' => false], 404);
-                } elseif ($userToDelete->status === 'deleted') {
-                    return response()->json(['message' => 'User is already soft-deleted', 'status' => false], 422);
-                }
-                $userToDelete->status = 'deleted';
-                $userToDelete->save();
-                return response()->json(['message' => 'User soft deleted successfully.', 'status' => true], 200);
-            } else {
-                return response()->json(['message' => 'Access denied', 'status' => false], 403);
-            }
+            return $this->userService->softDeleteUser($apiKey);
         } catch (TokenExpiredException | TokenBlacklistedException  $e) {
             return response()->json(['message' => 'Token has expired', 'status' => false], 401);
         }
@@ -226,20 +189,8 @@ class ApiController extends Controller
             if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'Unauthenticated', 'status' => false], 401);
             }
-            if (Gate::allows('admin')) {
 
-                $userToUndelete = $this->userService->findByApiKey($apiKey);
-                if (!$userToUndelete) {
-                    return response()->json(['message' => 'User not found', 'status' => false], 404);
-                } elseif ($userToUndelete->status === 'active') {
-                    return response()->json(['message' => 'User is already active', 'status' => false], 422);
-                }
-                $userToUndelete->status = 'active';
-                $userToUndelete->save();
-                return response()->json(['message' => 'Image soft undeleted successfully.', 'status' => true], 200);
-            } else {
-                return response()->json(['message' => 'Access denied', 'status' => false], 403);
-            }
+            return $this->userService->softUndeleteUser($apiKey);
         } catch (TokenExpiredException | TokenBlacklistedException  $e) {
             return response()->json(['message' => 'Token has expired', 'status' => false], 401);
         }
@@ -251,14 +202,7 @@ class ApiController extends Controller
             if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'User not found', 'status' => false], 404);
             }
-            if (Gate::allows('admin')) {
-                $perPage = 25;
-                $users = User::where('status', 'deleted')->paginate($perPage);
-
-                return response()->json($users);
-            } else {
-                return response()->json(['message' => 'Access denied.'], 403);
-            }
+            return $this->userService->listDeletedUsers();
         } catch (TokenExpiredException | TokenBlacklistedException $e) {
             return response()->json(['message' => 'Token has expired', 'status' => false], 401);
         }
