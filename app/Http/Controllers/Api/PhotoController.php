@@ -301,23 +301,16 @@ class PhotoController extends Controller
             return response()->json(['message' => 'Token has expired', 'status' => false], 401);
         }
     }
-    public function softUndeletePhoto(Request $request)
+    public function softUndeletePhoto($photoId)
     {
         try {
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
+            if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'Unauthenticated', 'status' => false], 401);
             }
             if (Gate::allows('admin')) {
 
-                $imageId = $request->input('id');
-                if (!$imageId) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'ImageId is the required field'
-                    ], 422);
-                }
 
-                $image = Photo::find($request->id);
+                $image = Photo::find($photoId);
                 if (!$image) {
                     return response()->json(['data' => null, 'message' => 'Photo not found'], 404);
                 } elseif ($image->status === 'active') {
