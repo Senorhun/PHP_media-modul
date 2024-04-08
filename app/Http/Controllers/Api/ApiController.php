@@ -15,179 +15,6 @@ use Symfony\Component\Console\Input\Input;
 
 class ApiController extends Controller
 {
-    public function softDeleteUser(Request $request)
-    {
-        try {
-            if (!$request->has('apiKey')) {
-                return response()->json(['message' => 'API key is required', 'status' => false], 400);
-            }
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
-                return response()->json(['message' => 'Unauthenticated', 'status' => false], 401);
-            }
-            if (Gate::allows('admin')) {
-                $apiKey = $request->input('apiKey');
-
-                $userToDelete = User::where('apiKey', $apiKey)->first();
-
-                if (!$userToDelete) {
-                    return response()->json(['message' => 'User not found', 'status' => false], 404);
-                } elseif ($userToDelete->status === 'deleted') {
-                    return response()->json(['message' => 'User is already soft-deleted', 'status' => false], 422);
-                }
-                $userToDelete->status = 'deleted';
-                $userToDelete->save();
-                return response()->json(['message' => 'User soft deleted successfully.', 'status' => true], 200);
-            } else {
-                return response()->json(['message' => 'Access denied', 'status' => false], 403);
-            }
-        } catch (TokenExpiredException | TokenBlacklistedException  $e) {
-            return response()->json(['message' => 'Token has expired', 'status' => false], 401);
-        }
-    }
-    public function softUndeleteUser(Request $request)
-    {
-        try {
-            if (!$request->has('apiKey')) {
-                return response()->json(['message' => 'API key is required', 'status' => false], 400);
-            }
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
-                return response()->json(['message' => 'Unauthenticated', 'status' => false], 401);
-            }
-            if (Gate::allows('admin')) {
-                $apiKey = $request->input('apiKey');
-
-                $userToUndelete = User::where('apiKey', $apiKey)->first();
-                if (!$userToUndelete) {
-                    return response()->json(['message' => 'User not found', 'status' => false], 404);
-                } elseif ($userToUndelete->status === 'active') {
-                    return response()->json(['message' => 'User is already active', 'status' => false], 422);
-                }
-                $userToUndelete->status = 'active';
-                $userToUndelete->save();
-                return response()->json(['message' => 'Image soft undeleted successfully.', 'status' => true], 200);
-            } else {
-                return response()->json(['message' => 'Access denied', 'status' => false], 403);
-            }
-        } catch (TokenExpiredException | TokenBlacklistedException  $e) {
-            return response()->json(['message' => 'Token has expired', 'status' => false], 401);
-        }
-    }
-    public function listUsers()
-    {
-        try {
-
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
-                return response()->json(['message' => 'Unauthenticated', 'status' => false], 401);
-            }
-            if (Gate::allows('admin')) {
-                $perPage = 25;
-                $users = User::where('status', 'active')->paginate($perPage);
-
-                return response()->json($users);
-            } else {
-                return response()->json(['message' => 'Access denied', 'status' => false], 403);
-            }
-        } catch (TokenExpiredException | TokenBlacklistedException  $e) {
-            return response()->json(['message' => 'Token has expired', 'status' => false], 401);
-        }
-    }
-
-    public function listDeletedUsers()
-    {
-        try {
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
-                return response()->json(['message' => 'User not found', 'status' => false], 404);
-            }
-            if (Gate::allows('admin')) {
-                $perPage = 25;
-                $users = User::where('status', 'deleted')->paginate($perPage);
-
-                return response()->json($users);
-            } else {
-                return response()->json(['message' => 'Access denied.'], 403);
-            }
-        } catch (TokenExpiredException | TokenBlacklistedException $e) {
-            return response()->json(['message' => 'Token has expired', 'status' => false], 401);
-        }
-    }
-    public function findByName(Request $request)
-    {
-        try {
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
-                return response()->json(['message' => 'User not found', 'status' => false], 404);
-            }
-            $firstName = $request->input('firstName');
-            $lastName = $request->input('lastName');
-
-            if (Gate::allows('admin')) {
-
-                if (!$firstName || !$lastName) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'Both firstName and lastName are required fields'
-                    ], 422);
-                }
-
-                $users = User::where('firstName', $firstName)->where('lastName', $lastName)->get();
-
-                if (!$users->isEmpty()) {
-                    return response()->json([
-                        'data' => $users
-                    ]);
-                } else {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'User not found'
-                    ], 404);
-                }
-            } else {
-                return response()->json(['data' => '', 'message' => 'Access denied.'], 403);
-            }
-        } catch (TokenExpiredException | TokenBlacklistedException $e) {
-            return response()->json(['message' => 'Token has expired', 'status' => false], 401);
-        }
-    }
-    public function findByApiKey(Request $request)
-    {
-        try {
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
-                return response()->json(['message' => 'User not found', 'status' => false], 404);
-            }
-            $apiKey = $request->input('apiKey');
-
-            if (Gate::allows('admin')) {
-                if (!$apiKey) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'ApiKey is the required field'
-                    ], 422);
-                }
-
-
-                $foundUser = User::where('apiKey', $apiKey)->first();
-                if (!$foundUser) {
-                    return response()->json(['message' => 'User not found'], 404);
-                }
-                $perPage = 10;
-                $photos = $user->photos()->paginate($perPage);
-
-                if ($foundUser) {
-                    return response()->json([
-                        'data' => $foundUser, $photos
-                    ]);
-                } else {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'User not found'
-                    ], 404);
-                }
-            } else {
-                return response()->json(['message' => 'Access denied', 'status' => false], 403);
-            }
-        } catch (TokenExpiredException | TokenBlacklistedException $e) {
-            return response()->json(['message' => 'Token has expired', 'status' => false], 401);
-        }
-    }
 
     public function register(Request $request)
     {
@@ -247,44 +74,6 @@ class ApiController extends Controller
             "message" => "Invalid details"
         ]);
     }
-    public function profile()
-    {
-
-        $userdata = auth()->user();
-
-        return response()->json([
-            "status" => true,
-            "message" => "Profile data",
-            "data" => $userdata
-        ]);
-    }
-    public function refreshToken()
-    {
-        $token = JWTAuth::getToken();
-
-        $newToken = JWTAuth::refresh($token);
-
-
-        JWTAuth::invalidate($token);
-        return response()->json([
-            "status" => true,
-            "message" => "New access token",
-            "token" => $newToken
-        ]);
-    }
-    public function logout()
-    {
-
-        auth()->logout();
-
-        JWTAuth::getToken();
-        JWTAuth::invalidate($forever = true);
-
-        return response()->json([
-            "status" => true,
-            "message" => "User logged out successfully"
-        ]);
-    }
 
     public function createUser(Request $request)
     {
@@ -333,5 +122,224 @@ class ApiController extends Controller
         } catch (TokenExpiredException | TokenBlacklistedException $e) {
             return response()->json(['message' => 'Token has expired', 'status' => false], 401);
         }
+    }
+
+    public function listUsers()
+    {
+        try {
+
+            if (!JWTAuth::parseToken()->authenticate()) {
+                return response()->json(['message' => 'Unauthenticated', 'status' => false], 401);
+            }
+            if (Gate::allows('admin')) {
+                $perPage = 25;
+                $users = User::where('status', 'active')->paginate($perPage);
+
+                return response()->json($users);
+            } else {
+                return response()->json(['message' => 'Access denied', 'status' => false], 403);
+            }
+        } catch (TokenExpiredException | TokenBlacklistedException  $e) {
+            return response()->json(['message' => 'Token has expired', 'status' => false], 401);
+        }
+    }
+
+    public function findByName($firstName, $lastName)
+    {
+        try {
+            if (!JWTAuth::parseToken()->authenticate()) {
+                return response()->json(['message' => 'User not found', 'status' => false], 404);
+            }
+
+            if (Gate::allows('admin')) {
+
+                if (!$firstName || !$lastName) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Both firstName and lastName are required fields'
+                    ], 422);
+                }
+
+                $users = User::where('firstName', $firstName)->where('lastName', $lastName)->get();
+
+                if (!$users->isEmpty()) {
+                    return response()->json([
+                        'data' => $users
+                    ]);
+                } else {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'User not found'
+                    ], 404);
+                }
+            } else {
+                return response()->json(['message' => 'Access denied.'], 403);
+            }
+        } catch (TokenExpiredException | TokenBlacklistedException $e) {
+            return response()->json(['message' => 'Token has expired', 'status' => false], 401);
+        }
+    }
+
+    public function softDeleteUser(Request $request)
+    {
+        try {
+            if (!$request->has('apiKey')) {
+                return response()->json(['message' => 'API key is required', 'status' => false], 400);
+            }
+            if (!$user = JWTAuth::parseToken()->authenticate()) {
+                return response()->json(['message' => 'Unauthenticated', 'status' => false], 401);
+            }
+            if (Gate::allows('admin')) {
+                $apiKey = $request->input('apiKey');
+
+                $userToDelete = User::where('apiKey', $apiKey)->first();
+
+                if (!$userToDelete) {
+                    return response()->json(['message' => 'User not found', 'status' => false], 404);
+                } elseif ($userToDelete->status === 'deleted') {
+                    return response()->json(['message' => 'User is already soft-deleted', 'status' => false], 422);
+                }
+                $userToDelete->status = 'deleted';
+                $userToDelete->save();
+                return response()->json(['message' => 'User soft deleted successfully.', 'status' => true], 200);
+            } else {
+                return response()->json(['message' => 'Access denied', 'status' => false], 403);
+            }
+        } catch (TokenExpiredException | TokenBlacklistedException  $e) {
+            return response()->json(['message' => 'Token has expired', 'status' => false], 401);
+        }
+    }
+
+
+
+    public function softUndeleteUser(Request $request)
+    {
+        try {
+            if (!$request->has('apiKey')) {
+                return response()->json(['message' => 'API key is required', 'status' => false], 400);
+            }
+            if (!$user = JWTAuth::parseToken()->authenticate()) {
+                return response()->json(['message' => 'Unauthenticated', 'status' => false], 401);
+            }
+            if (Gate::allows('admin')) {
+                $apiKey = $request->input('apiKey');
+
+                $userToUndelete = User::where('apiKey', $apiKey)->first();
+                if (!$userToUndelete) {
+                    return response()->json(['message' => 'User not found', 'status' => false], 404);
+                } elseif ($userToUndelete->status === 'active') {
+                    return response()->json(['message' => 'User is already active', 'status' => false], 422);
+                }
+                $userToUndelete->status = 'active';
+                $userToUndelete->save();
+                return response()->json(['message' => 'Image soft undeleted successfully.', 'status' => true], 200);
+            } else {
+                return response()->json(['message' => 'Access denied', 'status' => false], 403);
+            }
+        } catch (TokenExpiredException | TokenBlacklistedException  $e) {
+            return response()->json(['message' => 'Token has expired', 'status' => false], 401);
+        }
+    }
+
+
+    public function listDeletedUsers()
+    {
+        try {
+            if (!$user = JWTAuth::parseToken()->authenticate()) {
+                return response()->json(['message' => 'User not found', 'status' => false], 404);
+            }
+            if (Gate::allows('admin')) {
+                $perPage = 25;
+                $users = User::where('status', 'deleted')->paginate($perPage);
+
+                return response()->json($users);
+            } else {
+                return response()->json(['message' => 'Access denied.'], 403);
+            }
+        } catch (TokenExpiredException | TokenBlacklistedException $e) {
+            return response()->json(['message' => 'Token has expired', 'status' => false], 401);
+        }
+    }
+
+    public function findByApiKey(Request $request)
+    {
+        try {
+            if (!$user = JWTAuth::parseToken()->authenticate()) {
+                return response()->json(['message' => 'User not found', 'status' => false], 404);
+            }
+            $apiKey = $request->input('apiKey');
+
+            if (Gate::allows('admin')) {
+                if (!$apiKey) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'ApiKey is the required field'
+                    ], 422);
+                }
+
+
+                $foundUser = User::where('apiKey', $apiKey)->first();
+                if (!$foundUser) {
+                    return response()->json(['message' => 'User not found'], 404);
+                }
+                $perPage = 10;
+                $photos = $user->photos()->paginate($perPage);
+
+                if ($foundUser) {
+                    return response()->json([
+                        'data' => $foundUser, $photos
+                    ]);
+                } else {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'User not found'
+                    ], 404);
+                }
+            } else {
+                return response()->json(['message' => 'Access denied', 'status' => false], 403);
+            }
+        } catch (TokenExpiredException | TokenBlacklistedException $e) {
+            return response()->json(['message' => 'Token has expired', 'status' => false], 401);
+        }
+    }
+
+
+    public function profile()
+    {
+
+        $userdata = auth()->user();
+
+        return response()->json([
+            "status" => true,
+            "message" => "Profile data",
+            "data" => $userdata
+        ]);
+    }
+    public function refreshToken()
+    {
+        $token = JWTAuth::getToken();
+
+        $newToken = JWTAuth::refresh($token);
+
+
+        JWTAuth::invalidate($token);
+        return response()->json([
+            "status" => true,
+            "message" => "New access token",
+            "token" => $newToken
+        ]);
+    }
+    public function logout()
+    {
+
+        auth()->logout();
+
+        JWTAuth::getToken();
+        JWTAuth::invalidate($forever = true);
+
+        return response()->json([
+            "status" => true,
+            "message" => "User logged out successfully"
+        ]);
     }
 }

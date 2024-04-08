@@ -16,9 +16,9 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 Route::group(['prefix' => 'users'], function () {
     Route::post("register", [ApiController::class, "register"]);
     Route::post("login", [ApiController::class, "login"]);
-    Route::post("createUser", [ApiController::class, "createUser"]);
+    Route::post("create", [ApiController::class, "createUser"]);
     Route::get("list", [ApiController::class, "listUsers"]);
-    Route::get("find/byName", [ApiController::class, "findByName"]);
+    Route::get("find/{firstName}/{lastName}", [ApiController::class, "findByName"]);
     Route::get("find/byApiKey", [ApiController::class, "findByApiKey"]);
     Route::get("listDeleted", [ApiController::class, "listDeletedUsers"]);
     Route::put("softDelete/byApiKey", [ApiController::class, "softDeleteUser"]);
