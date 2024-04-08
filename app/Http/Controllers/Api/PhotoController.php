@@ -62,33 +62,7 @@ class PhotoController extends Controller
             if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'User not found', 'status' => false], 404);
             }
-            if (Gate::allows('admin')) {
-                $perPage = 25;
-                $photos = Photo::where('status', 'deleted')->paginate($perPage);
-
-
-
-                $imageData = $photos->map(function ($photo) {
-                    return [
-                        'id' => $photo->id,
-                        'fileName' => $photo->fileName,
-                        'fileSize' => $photo->fileSize,
-                        'extension' => $photo->extension,
-                        'mimeType' => $photo->mimeType,
-                        'slug' => $photo->slug,
-                        'user' => [
-                            'id' => $photo->user->id,
-                            'firstName' => $photo->user->firstName,
-                            'lastName' => $photo->user->lastName,
-                        ],
-                    ];
-                });
-
-
-                return response()->json(['data' => $imageData, 'message' => 'List of images.', 'status' => true], 200);
-            } else {
-                return response()->json(['message' => 'Access denied.']);
-            }
+            return $this->photoService->listDeletedPhotos();
         } catch (TokenExpiredException | TokenBlacklistedException  $e) {
             return response()->json(['message' => 'Token has expired', 'status' => false], 401);
         }
