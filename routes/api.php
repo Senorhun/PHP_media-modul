@@ -18,14 +18,17 @@ Route::group(['prefix' => 'users'], function () {
     Route::post("login", [ApiController::class, "login"]);
     Route::post("create", [ApiController::class, "createUser"]);
     Route::get("list", [ApiController::class, "listUsers"]);
-    Route::get("find/{firstName}/{lastName}", [ApiController::class, "findByName"]);
-    Route::get("find/{apiKey}", [ApiController::class, "findByApiKey"]);
     Route::get("list/deleted", [ApiController::class, "listDeletedUsers"]);
-    Route::put("find/{apiKey}/delete", [ApiController::class, "softDeleteUser"]);
-    Route::put("find/{apiKey}/undelete", [ApiController::class, "softUndeleteUser"]);
     Route::get("profile", [ApiController::class, "profile"]);
     Route::get("refresh", [ApiController::class, "refreshToken"]);
     Route::get("logout", [ApiController::class, "logout"]);
+
+    Route::group(['prefix' => 'find'], function () {
+        Route::get("{apiKey}", [ApiController::class, "findByApiKey"]);
+        Route::put("{apiKey}/delete", [ApiController::class, "softDeleteUser"]);
+        Route::put("{apiKey}/undelete", [ApiController::class, "softUndeleteUser"]);
+        Route::get("{firstName}/{lastName}", [ApiController::class, "findByName"]);
+    });
 });
 
 Route::group(['prefix' => 'photos'], function () {
