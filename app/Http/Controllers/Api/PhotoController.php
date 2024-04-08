@@ -214,27 +214,21 @@ class PhotoController extends Controller
         }
     }
 
-    public function findPhotoById(Request $request)
+    public function findPhotoById($photoId)
     {
         try {
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
+            if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'User not found', 'status' => false], 404);
             }
             if (Gate::allows('admin') || Gate::allows('user')) {
-                $imageId = $request->input('id');
-                if (!$imageId) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'ImageId is the required field'
-                    ], 422);
-                }
-                $image = Photo::where('id', $request->id)->with('user:id,firstName,lastName')->first();
+
+                $image = Photo::where('id', $photoId)->with('user:id,firstName,lastName')->first();
                 if (!$image) {
                     return response()->json(['data' => null, 'message' => 'Image not found'], 404);
                 }
                 return response()->json(['data' => $image], 200);
             } else {
-                return response()->json(['data' => '', 'message' => 'Access denied.']);
+                return response()->json(['message' => 'Access denied.']);
             }
         } catch (TokenExpiredException | TokenBlacklistedException  $e) {
             return response()->json(['message' => 'Token has expired', 'status' => false], 401);
@@ -283,23 +277,15 @@ class PhotoController extends Controller
         }
     }
 
-    public function softDeletePhoto(Request $request)
+    public function softDeletePhoto($photoId)
     {
         try {
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
+            if (!JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['message' => 'Unauthenticated', 'status' => false], 401);
             }
             if (Gate::allows('admin')) {
 
-                $imageId = $request->input('id');
-                if (!$imageId) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'ImageId is the required field'
-                    ], 422);
-                }
-
-                $image = Photo::find($request->id);
+                $image = Photo::find($photoId);
                 if (!$image) {
                     return response()->json(['data' => null, 'message' => 'Image not found'], 404);
                 } elseif ($image->status === 'deleted') {

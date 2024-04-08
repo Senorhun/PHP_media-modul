@@ -45,9 +45,9 @@ Route::group(['prefix' => 'photos'], function () {
     });
 
     Route::group(['prefix' => 'find'], function () {
-        Route::get("{fileName}", [PhotoController::class, "findPhotoByFileName"]);
-        Route::get("find/byId", [PhotoController::class, "findPhotoById"]);
-        Route::put("softDelete", [PhotoController::class, "softDeletePhoto"]);
+        Route::get("fileName/{fileName}", [PhotoController::class, "findPhotoByFileName"]);
+        Route::get("{id}", [PhotoController::class, "findPhotoById"]);
+        Route::put("{id}/delete", [PhotoController::class, "softDeletePhoto"]);
         Route::put("softUndelete", [PhotoController::class, "softUndeletePhoto"]);
         Route::put("update/byId", [PhotoController::class, "updatePhoto"]);
     });
