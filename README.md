@@ -1,16 +1,6 @@
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-## About Media-Modul
 
-Media-modul was created as a proof of commitment to earn the trust of Indamedia IT representative. I have been working on this for 10 days, starting with zero knowledge about php or laravel. I am very proud of my work and it hopefully will earn your attendtion. I have implemented all the listed tasks the paper mentioned:
-
--   [Purpose of the modul](#purpose-of-the-modul)
--   [Entities](#entities)
--   [Authentication/Authorization](#authenticationauthorization)
--   [Endpoints](#endpoints)
--   [Extras](#extras)
-
-I welcome criticism regarding my work for my further developement. I have utilized Laravel version 11.1.1 and PHP version 8.3.4 and mysql database as requested.
 
 ## Purpose of the modul
 
